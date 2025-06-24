@@ -1,13 +1,18 @@
-import dotenv from 'express';
-import express from 'express';
-import connectDB from './config/db';
-import cookieSession from 'cookie-session';
-
+import { config } from "dotenv";
+import express from "express";
+import connectDB from "./config/db.js";
+import cookieSession from "cookie-session";
+import passport from "passport";
+import cors from "cors";
+import authRoute from "./routes/authRoute.js";
 
 //Load environment variable
-dotenv.config();
+config();
 
-const app=express();
+const app = express();
+
+//Authentication
+app.use("/auth", authRoute);
 
 connectDB();
 
@@ -15,16 +20,29 @@ connectDB();
 app.use(express.json());
 
 //cors: Allow frontend with different port to communicate with backend
-app.use(cors({
+app.use(
+  cors({
     origin: process.env.CLIENT_URL,
-    Credentials:true;
-}))
+    credentials: true,
+  })
+);
 
-app.use(cookieSession({
-    name: 'session',
-    maxAge: 24*60*60*1000,
-    keys:['@d85&^5dume']
-}))
+app.use(
+  cookieSession({
+    name: "session",
+    maxAge: 24 * 60 * 60 * 1000,
+    keys: ["@d85&^5dume"],
+  })
+);
 
-app.get
+app.use(passport.initialize());
+app.use(passport.session());
 
+app.get("/", (req, res) => {
+  res.send("Auth Service is running");
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Auth service running on http://localhost:${PORT}`);
+});
